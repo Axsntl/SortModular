@@ -3,23 +3,60 @@
 #include <string>
 #include <sstream>
 #include <chrono>
-// cpp lo redondea a 0, hay que cambiar a nanosegundos
-// --- ALGORITMO PRINCIPAL ---
 #include <iomanip>
 
-void ordenarInsercion(std::vector<int>& lista_numeros) {
-    int n = lista_numeros.size();
-    for (int i = 1; i < n; i++) {
-        int valor_actual = lista_numeros[i];
-        int indice_anterior = i - 1;
-        while (indice_anterior >= 0 && lista_numeros[indice_anterior] > valor_actual) {
-            lista_numeros[indice_anterior + 1] = lista_numeros[indice_anterior];
-            indice_anterior = indice_anterior - 1;
+// Función para mezclar dos sub-listas ordenadas
+void mezclar(std::vector<int>& lista, int izquierda, int medio, int derecha) {
+    int n1 = medio - izquierda + 1;
+    int n2 = derecha - medio;
+
+    // Vectores temporales
+    std::vector<int> L(n1), R(n2);
+
+    for (int i = 0; i < n1; i++)
+        L[i] = lista[izquierda + i];
+    for (int j = 0; j < n2; j++)
+        R[j] = lista[medio + 1 + j];
+
+    int i = 0, j = 0, k = izquierda;
+
+    while (i < n1 && j < n2) {
+        if (L[i] <= R[j]) {
+            lista[k] = L[i];
+            i++;
+        } else {
+            lista[k] = R[j];
+            j++;
         }
-        lista_numeros[indice_anterior + 1] = valor_actual;
+        k++;
+    }
+
+    // Copiar elementos restantes si quedan
+    while (i < n1) {
+        lista[k] = L[i];
+        i++;
+        k++;
+    }
+    while (j < n2) {
+        lista[k] = R[j];
+        j++;
+        k++;
     }
 }
 
+// Función principal recursiva
+void ordenarMergeSort(std::vector<int>& lista, int izquierda, int derecha) {
+    if (izquierda < derecha) {
+        int medio = izquierda + (derecha - izquierda) / 2;
+
+        ordenarMergeSort(lista, izquierda, medio);
+        ordenarMergeSort(lista, medio + 1, derecha);
+
+        mezclar(lista, izquierda, medio, derecha);
+    }
+}
+
+// --- MAIN ESTÁNDAR (PLANTILLA) ---
 int main(int argc, char* argv[]) {
     if (argc < 2) return 1;
 
@@ -34,12 +71,13 @@ int main(int argc, char* argv[]) {
 
     if (!lista_para_ordenar.empty()) {
         auto tiempo_inicio = std::chrono::high_resolution_clock::now();
-        
-        ordenarInsercion(lista_para_ordenar);
-        
+
+        // Llamada inicial (desde índice 0 hasta el final)
+        ordenarMergeSort(lista_para_ordenar, 0, lista_para_ordenar.size() - 1);
+
         auto tiempo_fin = std::chrono::high_resolution_clock::now();
 
-        // CÁLCULOS
+        // CÁLCULOS PRECISOS
         std::chrono::duration<double, std::nano> duracion_nano = tiempo_fin - tiempo_inicio;
         double nanosegundos = duracion_nano.count();
         double microsegundos = nanosegundos / 1000.0;

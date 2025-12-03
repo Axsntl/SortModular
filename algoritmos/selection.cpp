@@ -3,23 +3,38 @@
 #include <string>
 #include <sstream>
 #include <chrono>
-// cpp lo redondea a 0, hay que cambiar a nanosegundos
-// --- ALGORITMO PRINCIPAL ---
 #include <iomanip>
 
-void ordenarInsercion(std::vector<int>& lista_numeros) {
+// Función auxiliar estándar
+void intercambiar(int& a, int& b) {
+    int temporal = a;
+    a = b;
+    b = temporal;
+}
+
+// Lógica de Selection Sort
+void ordenarSeleccion(std::vector<int>& lista_numeros) {
     int n = lista_numeros.size();
-    for (int i = 1; i < n; i++) {
-        int valor_actual = lista_numeros[i];
-        int indice_anterior = i - 1;
-        while (indice_anterior >= 0 && lista_numeros[indice_anterior] > valor_actual) {
-            lista_numeros[indice_anterior + 1] = lista_numeros[indice_anterior];
-            indice_anterior = indice_anterior - 1;
+
+    for (int i = 0; i < n - 1; i++) {
+        // Asumimos que el primero es el menor
+        int indice_minimo = i;
+        
+        // Buscamos si hay alguien menor en el resto de la lista
+        for (int j = i + 1; j < n; j++) {
+            if (lista_numeros[j] < lista_numeros[indice_minimo]) {
+                indice_minimo = j;
+            }
         }
-        lista_numeros[indice_anterior + 1] = valor_actual;
+
+        // Si encontramos uno menor, lo traemos al principio
+        if (indice_minimo != i) {
+            intercambiar(lista_numeros[i], lista_numeros[indice_minimo]);
+        }
     }
 }
 
+// --- MAIN ESTÁNDAR (PLANTILLA) ---
 int main(int argc, char* argv[]) {
     if (argc < 2) return 1;
 
@@ -34,12 +49,12 @@ int main(int argc, char* argv[]) {
 
     if (!lista_para_ordenar.empty()) {
         auto tiempo_inicio = std::chrono::high_resolution_clock::now();
-        
-        ordenarInsercion(lista_para_ordenar);
-        
+
+        ordenarSeleccion(lista_para_ordenar);
+
         auto tiempo_fin = std::chrono::high_resolution_clock::now();
 
-        // CÁLCULOS
+        // CÁLCULOS PRECISOS
         std::chrono::duration<double, std::nano> duracion_nano = tiempo_fin - tiempo_inicio;
         double nanosegundos = duracion_nano.count();
         double microsegundos = nanosegundos / 1000.0;

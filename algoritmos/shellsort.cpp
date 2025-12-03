@@ -2,49 +2,33 @@
 #include <vector>
 #include <string>
 #include <sstream>
-// Compilar: g++ algoritmos/burbuja.cpp -o algoritmos/burbuja
+#include <chrono>
+#include <iomanip>
 
-// --- FUNCIONES AUXILIARES (Estandarizadas) ---
-
-// Usamos la misma función de ayuda que en Quicksort para mantener consistencia
-void intercambiar(int& a, int& b) {
-    int temporal = a;
-    a = b;
-    b = temporal;
-}
-
-// --- ALGORITMO PRINCIPAL ---
-
-void ordenarBurbuja(std::vector<int>& lista_numeros) {
+// --- LÓGICA DE SHELL SORT ---
+void ordenarShell(std::vector<int>& lista_numeros) {
     int n = lista_numeros.size();
-    bool hubo_intercambio;
 
-    for (int i = 0; i < n - 1; i++) {
-        hubo_intercambio = false;
+    // Empezamos con una brecha grande y la vamos reduciendo a la mitad
+    for (int brecha = n / 2; brecha > 0; brecha /= 2) {
         
-        for (int j = 0; j < n - i - 1; j++) {
-            // Si el elemento actual es mayor al siguiente, intercambiamos
-            if (lista_numeros[j] > lista_numeros[j + 1]) {
-                intercambiar(lista_numeros[j], lista_numeros[j + 1]);
-                hubo_intercambio = true;
+        // Hacemos un "Insertion Sort" pero con saltos de tamaño 'brecha'
+        for (int i = brecha; i < n; i += 1) {
+            int temporal = lista_numeros[i];
+            int j;
+            
+            for (j = i; j >= brecha && lista_numeros[j - brecha] > temporal; j -= brecha) {
+                lista_numeros[j] = lista_numeros[j - brecha];
             }
+            lista_numeros[j] = temporal;
         }
-        
-        // Optimización: Si no hubo cambios en una pasada, ya está ordenado
-        if (!hubo_intercambio) break;
     }
 }
 
-// --- BLOQUE DE COMPATIBILIDAD CON PYTHON ---
-// (Este bloque ahora es idéntico al de Quicksort, solo cambia la llamada a la función)
-
+// --- MAIN ESTÁNDAR (PLANTILLA) ---
 int main(int argc, char* argv[]) {
-    // Verificamos seguridad
-    if (argc < 2) {
-        return 1;
-    }
+    if (argc < 2) return 1;
 
-    // 1. LECTURA DE DATOS
     std::string cadena_entrada = argv[1]; 
     std::vector<int> lista_para_ordenar;
     std::stringstream ss(cadena_entrada);
@@ -54,17 +38,31 @@ int main(int argc, char* argv[]) {
         lista_para_ordenar.push_back(std::stoi(segmento));
     }
 
-    // 2. EJECUCIÓN DEL ALGORITMO
     if (!lista_para_ordenar.empty()) {
-        ordenarBurbuja(lista_para_ordenar);
-    }
+        auto tiempo_inicio = std::chrono::high_resolution_clock::now();
 
-    // 3. SALIDA DE DATOS
-    std::cout << "Resultado (Burbuja): ";
-    for (size_t i = 0; i < lista_para_ordenar.size(); i++) {
-        std::cout << lista_para_ordenar[i] << " ";
-    }
-    std::cout << std::endl;
+        ordenarShell(lista_para_ordenar);
 
+        auto tiempo_fin = std::chrono::high_resolution_clock::now();
+
+        // CÁLCULOS
+        std::chrono::duration<double, std::nano> duracion_nano = tiempo_fin - tiempo_inicio;
+        double nanosegundos = duracion_nano.count();
+        double microsegundos = nanosegundos / 1000.0;
+        double segundos = nanosegundos / 1000000000.0;
+
+        std::cout << "Resultado: ";
+        for (size_t i = 0; i < lista_para_ordenar.size(); i++) {
+            std::cout << lista_para_ordenar[i] << " ";
+        }
+        std::cout << std::endl;
+
+        std::cout << "\n--- ESTADISTICAS DE TIEMPO ---" << std::endl;
+        std::cout << std::fixed << std::setprecision(4);
+        std::cout << "Nanosegundos:  " << nanosegundos << " ns" << std::endl;
+        std::cout << "Microsegundos: " << microsegundos << " us" << std::endl;
+        std::cout << std::setprecision(9);
+        std::cout << "Segundos:      " << segundos << " s" << std::endl;
+    }
     return 0;
 }
